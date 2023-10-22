@@ -6,9 +6,9 @@ const products = require('./schemas/products');
 const users = require('./schemas/users');
 const jwt = require('jsonwebtoken');
 
-server.use(express.json());
-server.use(cors());
 
+server.use(express.json()); // get the body in the request
+server.use(cors({ origin: '*' })); // Policy -> Secure Policy which specifies our client, so others can't send requests ( DDOS )
 
 mongoose.connect('mongodb://localhost:27017/heavenStylez',
   {
@@ -21,6 +21,19 @@ db.on("error", console.error.bind(console, "connection error: "));
 db.once("open", function () {
   console.log("Connected successfully");
 });
+
+const handleAdminReq = async (req, res, next) => {
+  let decoded = null;
+  if (req.body.key)
+    decoded = await jwt.verify(req.body.key, 'fdsafewt34aqrt43rtq23dsad');
+  if (!decoded || decoded.key.role == 'user') {
+    res.json({ message: 'Unauthorised request' })
+    return;
+  }
+
+  res.json({ message: 'Authorised request' })
+  next();
+}
 
 server.post('/products', async (req, res) => {
   const product = new products({
@@ -64,9 +77,7 @@ server.post('/users', async (req, res) => {
   res.json({ token })
 })
 
-server.post('/role', async (req, res) => {
-  let decoded = await jwt.verify(req.body.key, 'fdsafewt34aqrt43rtq23dsad');
-  console.log(decoded.key.role)
+server.post('/role', handleAdminReq, async (req, res) => {
   let tokenData = { role: decoded.key.role, username: decoded.key.username }
   res.json(tokenData)
 })
