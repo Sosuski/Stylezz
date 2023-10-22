@@ -20,33 +20,26 @@ const CreateProd = () => {
                 }),
             }).then((res) => res.json());
             console.log(response);
-            getRole = response.role;
-
+            if (response.role != 'admin')
+                navigate("/NotFound");
         }
-
 
         fetchData();
     }, [])
 
     async function HandleRequest() {
-        if (getRole == 'admin') {
-            const response = await fetch("http://localhost:8000/products", {
+        const response = await fetch("http://localhost:8000/products", {
 
-                method: "POST",
-                headers: {
-                    "Content-Type": "application/json"
-                },
-                body: JSON.stringify({
-                    title: title.current.value,
-                    description: description.current.value,
-                    price: price.current.value
-                }),
-            })
-        } else {
-            navigate("/NotFound");
-            return
-        }
-
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json"
+            },
+            body: JSON.stringify({
+                title: title.current.value,
+                description: description.current.value,
+                price: price.current.value
+            }),
+        })
         console.log(title.current.value, description.current.value, price.current.value)
     }
 
